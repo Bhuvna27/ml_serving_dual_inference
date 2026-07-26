@@ -21,7 +21,7 @@ def main() -> None:
 
     original_rows = len(dataframe)
 
-    X, y = build_training_dataset(dataframe)
+    X, y, pickup_times = build_training_dataset(dataframe)
 
     removed_rows = original_rows - len(X)
 
