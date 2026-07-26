@@ -3,10 +3,13 @@ Train a baseline model for total fare prediction.
 """
 
 from pathlib import Path
+import json
+from datetime import datetime, timezone
 
 import joblib
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from src.config.ml_config import RANDOM_SEED
 
 from src.data.data_loader import load_dataset
 from src.data.data_preprocessing import build_training_dataset
@@ -96,6 +99,42 @@ def main():
     )
 
     print(f"\nModel saved to:\n{model_path}")
+
+
+    metrics = {
+    "mae": mae,
+    "rmse": rmse,
+    "r2": r2,
+    "train_rows": len(X_train),
+    "test_rows": len(X_test),
+    }
+
+    metrics_path = PROJECT_ROOT / "models" / "metrics.json"
+
+    with metrics_path.open("w", encoding="utf-8") as file:
+        json.dump(metrics, file, indent=2)
+
+    print(f"Saved metrics to {metrics_path}")
+
+    metadata = {
+        "model_type": type(model).__name__,
+        "target": "total_amount",
+        "feature_columns": list(X_train.columns),
+        "random_seed": RANDOM_SEED,
+        "training_timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "dataset": "NYC TLC Yellow Taxi Trip Records",
+        "dataset_period": "2026-01",
+        "train_rows": len(X_train),
+        "test_rows": len(X_test),
+        "metrics_file": "metrics.json",
+    }
+
+    metadata_path = PROJECT_ROOT / "models" / "model_metadata.json"
+
+    with metadata_path.open("w", encoding="utf-8") as file:
+        json.dump(metadata, file, indent=2)
+
+    print(f"Saved model metadata to {metadata_path}")
 
 
 if __name__ == "__main__":
